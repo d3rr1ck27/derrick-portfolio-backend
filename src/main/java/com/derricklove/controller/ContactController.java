@@ -25,7 +25,7 @@ public class ContactController {
 
             CreateEmailOptions params = CreateEmailOptions.builder()
                 .from("Portfolio Contact <onboarding@resend.dev>")
-                .to("derricklovebus@gmail.com")
+                .to("againitsmedk27@gmail.com")
                 .subject("Portfolio Contact: " + message.getSubject())
                 .html(
                     "<p><strong>Name:</strong> " + message.getName() + "</p>" +

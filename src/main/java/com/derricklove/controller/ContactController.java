@@ -1,31 +1,44 @@
 package com.derricklove.controller;
 
 import com.derricklove.model.ContactMessage;
+import com.resend.Resend;
+import com.resend.core.exception.ResendException;
+import com.resend.services.emails.model.CreateEmailOptions;
+import com.resend.services.emails.model.CreateEmailResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/contact")
-@CrossOrigin(origins = {"http://localhost:3000", "https://derrick-portfolio-frontend.vercel.app"})
+@CrossOrigin(origins = {"http://localhost:3000", "https://derrick-portfollio-frontend.vercel.app"})
 @RequiredArgsConstructor
 public class ContactController {
 
-    private final JavaMailSender mailSender;
+    @Value("${RESEND_API_KEY}")
+    private String resendApiKey;
 
     @PostMapping
     public String sendMessage(@RequestBody ContactMessage message) {
-        SimpleMailMessage mail = new SimpleMailMessage();
-        mail.setFrom("derricklove2704@gmail.com");
-        mail.setTo("derricklovebus@gmail.com");
-        mail.setSubject("Portfolio Contact: " + message.getSubject());
-        mail.setText(
-                "Name: " + message.getName() + "\n" +
-                        "Email: " + message.getEmail() + "\n\n" +
-                        "Message:\n" + message.getMessage()
-        );
-        mailSender.send(mail);
-        return "Message sent successfully";
+        try {
+            Resend resend = new Resend(resendApiKey);
+
+            CreateEmailOptions params = CreateEmailOptions.builder()
+                .from("Portfolio Contact <onboarding@resend.dev>")
+                .to("derricklovebus@gmail.com")
+                .subject("Portfolio Contact: " + message.getSubject())
+                .html(
+                    "<p><strong>Name:</strong> " + message.getName() + "</p>" +
+                    "<p><strong>Email:</strong> " + message.getEmail() + "</p>" +
+                    "<p><strong>Message:</strong><br>" + message.getMessage() + "</p>"
+                )
+                .build();
+
+            CreateEmailResponse response = resend.emails().send(params);
+            return "Message sent successfully";
+
+        } catch (ResendException e) {
+            throw new RuntimeException("Failed to send email: " + e.getMessage());
+        }
     }
 }
